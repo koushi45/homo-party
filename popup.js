@@ -2,6 +2,7 @@ const $ = (selector) => document.querySelector(selector);
 let localState = null;
 let session = null;
 let roomDetails = null;
+let activeTabId = null;
 
 async function message(payload) {
   const result = await chrome.runtime.sendMessage(payload);
@@ -21,6 +22,16 @@ function showTab(name) {
   document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.tab === name));
   $("#roomsPanel").hidden = name !== "rooms";
   $("#currentPanel").hidden = name !== "current";
+}
+
+function videoUrl(room) {
+  const value = room?.url || room?.videoUrl || "";
+  try {
+    const url = new URL(value);
+    return ["http:", "https:"].includes(url.protocol) ? url.href : "";
+  } catch {
+    return "";
+  }
 }
 
 function renderRooms(rooms) {
@@ -57,6 +68,11 @@ function renderCurrent(room) {
   $("#currentRoom").textContent = room.id;
   $("#currentTitle").textContent = room.title || "動画タイトルなし";
   $("#currentTitle").title = room.title || "";
+  const url = videoUrl(room);
+  $("#currentUrl").hidden = !url;
+  $("#currentUrl").textContent = url;
+  $("#currentUrl").title = url;
+  $("#currentUrl").href = url || "#";
   $("#deleteRoom").hidden = !room.isHost;
   $("#participants").replaceChildren(...room.participants.map((participant) => {
     const item = document.createElement("div");
@@ -128,6 +144,7 @@ async function transferHost(userId) {
 
 async function init() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  activeTabId = tab?.id || null;
   try {
     const page = await chrome.tabs.sendMessage(tab?.id, { type: "GET_LOCAL_STATE" });
     localState = page.state;
@@ -141,6 +158,13 @@ async function init() {
 
 document.querySelectorAll(".tab").forEach((tab) => tab.addEventListener("click", () => showTab(tab.dataset.tab)));
 $("#refresh").addEventListener("click", refresh);
+$("#currentUrl").addEventListener("click", async (event) => {
+  event.preventDefault();
+  const url = videoUrl(roomDetails);
+  if (!activeTabId || !url) return;
+  await chrome.tabs.update(activeTabId, { url });
+  window.close();
+});
 $("#openLogin").addEventListener("click", async () => {
   try {
     const pairing = await message({ type: "START_PAIRING" });

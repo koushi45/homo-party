@@ -20,6 +20,8 @@ button:disabled { opacity: .45; cursor: default; }
 .room { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; }
 .room-id { font-size: 14px; letter-spacing: 1px; }
 .video-title { overflow: hidden; margin-top: 4px; color: #c5ccdb; text-overflow: ellipsis; white-space: nowrap; }
+.video-url { display: block; overflow: hidden; margin-top: 3px; color: #8da9ff; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.video-url:hover { color: #b5c5ff; }
 .room button, .small { width: auto; padding: 7px 10px; font-size: 12px; }
 .room.current button { background: #344153; color: #9da7bd; }
 .empty-state { padding: 22px 12px; color: #8993a8; text-align: center; }
