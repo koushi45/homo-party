@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Nico Party</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main>
+      <h1>Nico Party</h1>
+      <p id="site">対応動画ページを開いてください</p>
+      <section id="disconnected">
+        <button id="create">今の再生位置でルーム作成</button>
+        <div class="join">
+          <input id="roomId" maxlength="8" placeholder="ルームID">
+          <button id="join">参加</button>
+        </div>
+      </section>
+      <section id="connected" hidden>
+        <p>接続中のルーム</p>
+        <strong id="currentRoom"></strong>
+        <button id="leave" class="secondary">退出</button>
+      </section>
+      <p id="status"></p>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>

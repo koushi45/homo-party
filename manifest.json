@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "Nico Party",
+  "version": "1.0.0",
+  "description": "YouTube、Amazon Prime Video、ニコニコ動画の再生状態を同期します。",
+  "permissions": ["storage", "tabs"],
+  "host_permissions": ["https://rimworld-inm.duckdns.org/*"],
+  "action": {
+    "default_title": "Nico Party",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.youtube.com/*",
+        "https://youtube.com/*",
+        "https://www.amazon.com/*",
+        "https://www.amazon.co.jp/*",
+        "https://www.primevideo.com/*",
+        "https://www.nicovideo.jp/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
