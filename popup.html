@@ -3,25 +3,60 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>homo Party</title>
+    <title>Homo Party</title>
     <link rel="stylesheet" href="popup.css">
   </head>
   <body>
     <main>
-      <h1>homo Party</h1>
-      <p id="site">対応動画ページを開いてください</p>
-      <section id="disconnected">
-        <button id="create">今の再生位置でルーム作成</button>
-        <div class="join">
-          <input id="roomId" maxlength="8" placeholder="ルームID">
-          <button id="join">参加</button>
+      <header class="header">
+        <div>
+          <h1>Homo Party</h1>
+          <p id="account"></p>
         </div>
+        <button id="refresh" class="icon-button" title="更新">↻</button>
+      </header>
+
+      <section id="loginRequired" class="empty-state" hidden>
+        <strong>サイトとの連携が必要です</strong>
+        <p>rimworld-inm にログインし、連携コードを承認してください。</p>
+        <strong id="pairingCode" class="pairing-code"></strong>
+        <button id="openLogin">連携を開始</button>
+        <button id="checkPairing" class="secondary" hidden>承認後に再確認</button>
       </section>
-      <section id="connected" hidden>
-        <p>接続中のルーム</p>
-        <strong id="currentRoom"></strong>
-        <button id="leave" class="secondary">退出</button>
+
+      <section id="app" hidden>
+        <nav class="tabs">
+          <button class="tab active" data-tab="rooms">ルーム一覧</button>
+          <button class="tab" data-tab="current">接続中 <span id="connectedDot"></span></button>
+        </nav>
+
+        <section id="roomsPanel" class="panel">
+          <div class="create-card">
+            <p id="site">対応動画ページを開いてください</p>
+            <button id="create">現在の動画でルームを作成</button>
+          </div>
+          <div id="rooms" class="room-list"></div>
+          <p id="noRooms" class="empty-state">現在立てられているルームはありません。</p>
+        </section>
+
+        <section id="currentPanel" class="panel" hidden>
+          <div id="notConnected" class="empty-state">ルームに接続していません。</div>
+          <div id="currentRoomCard" hidden>
+            <div class="room-heading">
+              <div>
+                <span class="eyebrow">ルームID</span>
+                <strong id="currentRoom"></strong>
+              </div>
+              <button id="leave" class="secondary small">退出</button>
+            </div>
+            <p id="currentTitle" class="video-title"></p>
+            <h2>入室者</h2>
+            <div id="participants" class="participants"></div>
+            <button id="deleteRoom" class="danger" hidden>ルームを削除</button>
+          </div>
+        </section>
       </section>
+
       <p id="status"></p>
     </main>
     <script src="popup.js"></script>

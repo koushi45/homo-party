@@ -15,6 +15,7 @@ function mediaKey() {
 function localState() {
   return {
     mediaKey: mediaKey(),
+    title: document.title.slice(0, 500),
     currentTime: video?.currentTime || 0,
     paused: video?.paused ?? true,
     playbackRate: video?.playbackRate || 1,
