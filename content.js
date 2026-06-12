@@ -37,14 +37,23 @@ function reportState() {
   return send({ type: "UPDATE_STATE", state: localState() });
 }
 
+function timestampMs(value) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value < 1e12 ? value * 1000 : value;
+  }
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : Date.now();
+}
+
 async function applyState(state) {
   if (!video || state.revision <= lastRevision || state.mediaKey !== mediaKey()) return;
   lastRevision = state.revision;
   suppressUntil = Date.now() + 1200;
 
+  const elapsedSeconds = Math.max(0, (Date.now() - timestampMs(state.updatedAt)) / 1000);
   const projectedTime = state.paused
     ? state.currentTime
-    : state.currentTime + ((Date.now() - state.updatedAt) / 1000) * state.playbackRate;
+    : state.currentTime + elapsedSeconds * state.playbackRate;
   if (Math.abs(video.currentTime - projectedTime) > 1.2) video.currentTime = projectedTime;
   if (Math.abs(video.playbackRate - state.playbackRate) > 0.01) video.playbackRate = state.playbackRate;
 
