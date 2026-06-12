@@ -4,7 +4,7 @@ let suppressUntil = 0;
 let lastRevision = 0;
 let pollTimer = null;
 let videoObserver = null;
-const SYNC_INTERVAL_MS = 3000;
+const SYNC_INTERVAL_MS = 5000;
 
 function mediaKey() {
   const url = new URL(location.href);
@@ -33,7 +33,7 @@ async function send(message) {
 }
 
 function reportState() {
-  if (!session || !video || Date.now() < suppressUntil) return;
+  if (!session?.isHost || !video || Date.now() < suppressUntil) return;
   return send({ type: "UPDATE_STATE", state: localState() });
 }
 
@@ -59,25 +59,20 @@ async function applyState(state) {
 }
 
 async function poll() {
-  if (!session || !video) return;
+  if (!session || session.isHost || !video) return;
   const result = await send({ type: "POLL" });
   if (result?.state) applyState(result.state);
 }
 
 async function sync() {
   if (!session || !video) return;
-  await reportState();
-  await poll();
+  if (session.isHost) await reportState();
+  else await poll();
 }
 
 function bindVideo(nextVideo) {
   if (video === nextVideo) return;
   video = nextVideo;
-  for (const event of ["play", "pause", "seeked", "ratechange"]) {
-    video.addEventListener(event, reportState);
-  }
-  reportState();
-  poll();
 }
 
 function findVideo() {
@@ -98,10 +93,8 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.type === "SESSION_CHANGED") {
     session = message.session;
     lastRevision = 0;
-    if (session) reportState();
   }
   if (message.type === "GET_LOCAL_STATE") sendResponse({ state: localState(), supported: Boolean(video) });
-  if (message.type === "REPORT_STATE") reportState();
 });
 
 send({ type: "GET_SESSION" }).then((result) => {
