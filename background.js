@@ -33,6 +33,18 @@ async function broadcast(message) {
   await Promise.allSettled(tabs.map((tab) => chrome.tabs.sendMessage(tab.id, message)));
 }
 
+async function isActiveTab(tabId) {
+  if (!tabId) return false;
+  const [activeTab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+  return activeTab?.id === tabId;
+}
+
+async function reportActiveTab() {
+  const [activeTab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+  if (!activeTab?.id) return;
+  await chrome.tabs.sendMessage(activeTab.id, { type: "REPORT_STATE" }).catch(() => null);
+}
+
 async function leaveCurrentRoom() {
   const session = await getSession();
   if (!session) return;
@@ -41,7 +53,7 @@ async function leaveCurrentRoom() {
   await broadcast({ type: "SESSION_CHANGED", session: null });
 }
 
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   (async () => {
     if (message.type === "GET_SESSION") return { session: await getSession() };
 
@@ -95,6 +107,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
     if (message.type === "POLL") return await request(`/${session.roomId}`);
     if (message.type === "UPDATE_STATE") {
+      if (!await isActiveTab(sender.tab?.id)) return { ignored: true };
       return await request(`/${session.roomId}`, { method: "PUT", body: JSON.stringify(message.state) });
     }
     if (message.type === "DELETE_ROOM") {
@@ -111,4 +124,12 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     }
   })().then(sendResponse).catch((error) => sendResponse({ error: error.message, status: error.status }));
   return true;
+});
+
+chrome.tabs.onActivated.addListener(() => {
+  reportActiveTab();
+});
+
+chrome.windows.onFocusChanged.addListener((windowId) => {
+  if (windowId !== chrome.windows.WINDOW_ID_NONE) reportActiveTab();
 });
