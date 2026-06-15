@@ -45,6 +45,34 @@ function timestampMs(value) {
   return Number.isFinite(parsed) ? parsed : Date.now();
 }
 
+function isNiconico() {
+  return location.hostname.includes("nicovideo.jp");
+}
+
+function notifyNiconicoPlayerTime(seeked = false) {
+  if (!video || !isNiconico()) return;
+  video.dispatchEvent(new Event("timeupdate"));
+  if (seeked) video.dispatchEvent(new Event("seeked"));
+}
+
+function seekVideo(time) {
+  if (!video) return;
+  if (!isNiconico()) {
+    video.currentTime = time;
+    return;
+  }
+
+  // NicoNico's controls and comments keep their own playback clock. Notify
+  // them when an external sync seeks the underlying video element.
+  video.dispatchEvent(new Event("seeking"));
+  video.currentTime = time;
+  notifyNiconicoPlayerTime();
+  const soughtVideo = video;
+  requestAnimationFrame(() => {
+    if (video === soughtVideo) notifyNiconicoPlayerTime(true);
+  });
+}
+
 async function applyState(state, serverNow = Date.now()) {
   if (!video || state.revision <= lastRevision || state.mediaKey !== mediaKey()) return;
   lastRevision = state.revision;
@@ -54,7 +82,8 @@ async function applyState(state, serverNow = Date.now()) {
   const projectedTime = state.paused
     ? state.currentTime
     : state.currentTime + elapsedSeconds * state.playbackRate;
-  if (Math.abs(video.currentTime - projectedTime) > 1.2) video.currentTime = projectedTime;
+  if (Math.abs(video.currentTime - projectedTime) > 1.2) seekVideo(projectedTime);
+  else notifyNiconicoPlayerTime();
   if (Math.abs(video.playbackRate - state.playbackRate) > 0.01) video.playbackRate = state.playbackRate;
 
   if (state.paused && !video.paused) video.pause();
