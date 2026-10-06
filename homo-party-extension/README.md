@@ -1,6 +1,3 @@
-tar -a -c -f homo-party-extension.zip manifest.json background.js content.js popup.html popup.css popup.js README.md icons
-Copy-Item homo-party-extension.zip ..\public\downloads\homo-party-extension.zip
-
 # homo Party
 
 YouTube、Amazon Prime Video、ニコニコ動画で、同じルームに参加したブラウザ間の再生・停止・シーク・再生速度を同期するChrome/Edge拡張機能です。
